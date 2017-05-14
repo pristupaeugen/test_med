@@ -1,0 +1,19 @@
+---
+# tasks file for roles/create
+  - name: "Clear metadata cache"
+    shell: docker exec -i oceansmhealth-web bash -c "php /var/www/oceansmhealth/bin/console doctrine:cache:clear-metadata"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Update cache"
+    shell: docker exec -i oceansmhealth-web bash -c "cd /var/www/oceansmhealth; php bin/console cache:clear --env=prod"
+
+  - file: path={{app_project_root}}/var/cache owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/logs owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/sessions owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/web owner={{ app_user }} group={{ app_group }} recurse=true
+
+  - file: path={{app_project_root}}/web/uploads owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true state=directory

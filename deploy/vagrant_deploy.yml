@@ -1,0 +1,15 @@
+---
+- hosts: vagrant
+  user: oceansmhealth
+  become: yes
+  vars_files:
+    - group_vars/vagrant
+
+  roles:
+    - git
+    - source
+    - docker
+    - redis
+    - web
+    - nginx
+    - create

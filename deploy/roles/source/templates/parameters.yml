@@ -1,0 +1,13 @@
+# This file is auto-generated during the composer install
+parameters:
+    database_host: $host_internal_ip
+    database_port: $database_port
+    database_name: oceansmhealth_db
+    database_user: root
+    database_password: $mysql_pass
+    mailer_transport: gmail
+    mailer_host: smtp.gmail.com
+    mailer_user: $mailer_user
+    mailer_password: $mailer_password
+    mailer_port: 465
+    secret: ba855f46ce2bdc873484f075dd66256517ba63ec

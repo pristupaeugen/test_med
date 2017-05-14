@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    Hi, {{ user.firstname }}!
+
+    To confirm your email, push the link:
+    <a href="{{ url('app_confirmation', {'id' : user.id, 'sign': user.salt}) }}">
+        Go to site!
+    </a>
+
+{% endblock %}

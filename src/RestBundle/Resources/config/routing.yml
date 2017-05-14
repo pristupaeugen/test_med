@@ -1,0 +1,104 @@
+rest_registration:
+    path:     /register
+    defaults: { _controller: RestBundle:Registration:register }
+    methods: [POST]
+
+rest_login:
+    path:     /login
+    defaults: { _controller: RestBundle:Security:login }
+
+rest_logout:
+    path:     /logout
+    defaults: { _controller: RestBundle:Security:logout }
+
+rest_get_auth_user:
+    path:     /getAuthUser
+    defaults: { _controller: RestBundle:Security:getAuthUser }
+
+rest_reset_password:
+    path:     /resetPassword
+    defaults: { _controller: RestBundle:Security:resetPassword }
+
+rest_get_countries:
+    path:     /getCountries
+    defaults: { _controller: RestBundle:Location:getCountries }
+
+rest_find_medicines:
+    path:     /pharmacist/find
+    defaults: { _controller: RestBundle:Search:findMedicines }
+    methods:  [GET]
+
+rest_get_medicines:
+    path:     /pharmacist/get
+    defaults: { _controller: RestBundle:Medicine:getMedicines }
+    methods:  [GET]
+    
+rest_add_medicine:
+    path:     /pharmacist/add
+    defaults: { _controller: RestBundle:Medicine:addMedicine }
+    methods:  [PATCH]
+
+rest_remove_medicine:
+    path:     /pharmacist/remove
+    defaults: { _controller: RestBundle:Medicine:removeMedicine }
+    methods:  [PATCH]
+
+rest_get_medicine_labels:
+    path:     /pharmacist/labels/get
+    defaults: { _controller: RestBundle:Medicine:getLabels }
+    methods:  [GET]
+
+rest_get_matches:
+    path:     /matches/get
+    defaults: { _controller: RestBundle:Match:getMatches }
+    methods:  [GET]
+
+rest_add_match:
+    path:     /matches/add
+    defaults: { _controller: RestBundle:Match:addMatch }
+    methods:  [PATCH]
+
+rest_remove_match:
+    path:     /matches/remove
+    defaults: { _controller: RestBundle:Match:removeMatch }
+    methods:  [PATCH]
+
+rest_find_matches:
+    path:     /matches/find
+    defaults: { _controller: RestBundle:Search:findMatches }
+    methods:  [GET]
+
+rest_find_country_matches:
+    path:     /matches/country
+    defaults: { _controller: RestBundle:Search:findCountryMatches }
+    methods:  [GET]
+
+rest_add_interaction:
+    path:     /interactions/add
+    defaults: { _controller: RestBundle:Interaction:addInteraction }
+    methods:  [PATCH]
+
+rest_remove_interaction:
+    path:     /interactions/remove
+    defaults: { _controller: RestBundle:Interaction:removeInteraction }
+    methods:  [PATCH]
+
+rest_find_interactions:
+    path:     /interactions/find
+    defaults: { _controller: RestBundle:Interaction:findInteractions }
+    methods:  [GET]
+
+rest_get_interactions:
+    path:     /interactions/get
+    defaults: { _controller: RestBundle:Interaction:getInteractions }
+    methods:  [GET]
+
+rest_get_reminders:
+    path:     /reminders/get
+    defaults: { _controller: RestBundle:Reminder:getReminders }
+    methods:  [GET]
+
+rest_update_reminders:
+    path:     /reminder/update
+    defaults: { _controller: RestBundle:Reminder:updateReminder }
+    methods: [POST]

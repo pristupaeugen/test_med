@@ -1,0 +1,13 @@
+services:
+    rest.rest_token_authenticator:
+        class: RestBundle\Security\RestTokenAuthenticator
+        arguments: ['@doctrine.orm.entity_manager', '@router', '@service_container']
+
+    rest.rest_exception_subscriber:
+        class: RestBundle\EventSubscriber\RestExceptionSubscriber
+        arguments: []
+        tags:
+            - { name: kernel.event_subscriber }
+
+    rest.rest_form_error_convertor:
+        class: RestBundle\Service\FormErrorConvertorManager

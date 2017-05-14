@@ -1,0 +1,23 @@
+---
+- hosts: test
+  user: oceansmhealth
+  become: yes
+  vars_files:
+    - group_vars/test
+
+  tasks:
+    - name: Stop and remove web container
+      docker:
+        name: oceansmhealth-test
+        image: oceansmhealth_web
+        state: absent
+
+    - name: Run web container via Command module
+      command: docker run -v /var/www/test/:/var/www/test/ -p 8081:8081 -i --name oceansmhealth-test --hostname=web-box oceansmhealth_web
+
+    - pause: seconds=10
+
+    - name: Start web container
+      command: docker start oceansmhealth-test
+
+    - pause: seconds=5

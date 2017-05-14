@@ -1,0 +1,19 @@
+---
+# tasks file for roles/redis
+  - name: Stop and remove redis container
+    docker:
+      name: oceansmhealth-redis
+      image: redis
+      state: absent
+
+  - name: Remove redis image
+    docker_image: name="redis" state=absent
+
+  - name: Pull redis image via Command module
+    command: docker pull redis
+
+  - name: Run redis container via Command module
+    command: docker run --name oceansmhealth-redis -d redis
+
+  - name: Start redis container
+    command: docker start oceansmhealth-redis

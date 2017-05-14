@@ -1,0 +1,11 @@
+---
+- hosts: test
+  user: oceansmhealth
+  become: yes
+  vars_files:
+    - group_vars/test
+
+  roles:
+    - source
+    - web_test
+    - create_test

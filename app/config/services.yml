@@ -1,0 +1,31 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+    app.eventlistener.registration:
+        class: AppBundle\EventListener\RegistrationListener
+        arguments: ["@service_container"]
+        tags:
+            - { name: kernel.event_listener, event: app.event.registration_event, method: onRegistredEvent }
+
+    app.password_manager:
+        class: AppBundle\Service\PasswordManager
+
+    app.entity_listener:
+        class: AppBundle\EventListener\EntityListener
+        arguments:
+            - '@security.token_storage'
+            - '@doctrine.orm.entity_manager'
+        tags:
+            - { name: doctrine.event_listener, event: postLoad }
+
+    app.user_actions_listener:
+        class: AppBundle\EventListener\UserActionsListener
+        arguments:
+            - '@security.token_storage'
+            - '@doctrine.orm.entity_manager'
+        tags:
+            - { name: kernel.event_listener, event: app.event.add_drug_to_user_list_event, method: onAddDrugToUserListEvent }
+            - { name: kernel.event_listener, event: app.event.remove_drug_from_user_list_event, method: onRemoveDrugFromUserListEvent }

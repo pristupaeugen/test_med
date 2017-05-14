@@ -1,0 +1,23 @@
+---
+# tasks file for roles/web
+  - name: Stop and remove web container
+    docker:
+      name: oceansmhealth-web
+      image: oceansmhealth_web
+      state: absent
+
+  - name: Remove web image
+    docker_image: name="oceansmhealth_web" state=absent
+
+  - name: Check or build web image
+    docker_image: path="{{app_project_root}}/deploy/containers/web_php7" name="oceansmhealth_web" state=present
+
+  - name: Run web container via Command module
+    command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ -p 8080:8080 -i --name oceansmhealth-web --hostname=web-box oceansmhealth_web
+
+  - pause: seconds=10
+
+  - name: Start web container
+    command: docker start oceansmhealth-web
+
+  - pause: seconds=5

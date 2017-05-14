@@ -1,0 +1,116 @@
+---
+# tasks file for roles/update
+  - name: Update project
+    git: repo=git@bitbucket.org:oceansmhealth/omh-backend-api.git
+         dest={{app_project_root}}
+         version={{branch}}
+         accept_hostkey=yes
+         clone=no
+         update=yes
+         force=yes
+    become: no
+
+  - name: Stop and remove redis container
+    docker:
+      name: oceansmhealth-redis
+      image: redis
+      state: absent
+    when: jenkins is undefined or jenkins|int == 0
+
+  - name: Stop and remove web container
+    docker:
+      name: oceansmhealth-web
+      image: oceansmhealth_web
+      state: absent
+    when: jenkins is undefined or jenkins|int == 0
+
+  - name: Stop and remove nginx container
+    docker:
+      name: oceansmhealth-nginx
+      image: oceansmhealth_nginx
+      state: absent
+    when: jenkins is undefined or jenkins|int == 0
+
+  - pause: seconds=5
+
+  - name: Run redis container via Command module
+    command: docker run -i --name oceansmhealth-redis -d redis
+    when: jenkins is undefined or jenkins|int == 0
+
+  - pause: seconds=10
+
+  - name: Start redis container
+    command: docker start oceansmhealth-redis
+
+  - pause: seconds=5
+
+  - name: Run web container via Command module
+    command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ --link oceansmhealth-redis:oceansmhealth-redis -p 8080:8080 -i --name oceansmhealth-web --hostname=web-box oceansmhealth_web
+    when: jenkins is undefined or jenkins|int == 0
+
+  - pause: seconds=10
+
+  - name: Start web container
+    command: docker start oceansmhealth-web
+
+  - pause: seconds=5
+
+  - name: Run nginx container via Command module
+    command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ --link oceansmhealth-web:oceansmhealth-web -p 80:80 -i --name oceansmhealth-nginx --hostname=nginx-box oceansmhealth_nginx
+    when: jenkins is undefined or jenkins|int == 0
+
+  - name: Start nginx container
+    command: docker start oceansmhealth-nginx
+
+  - name: "Install vendors via composer"
+    shell: docker exec -i oceansmhealth-web bash -c "cd /var/www/oceansmhealth; composer install --no-interaction"
+    when: composer_update|int == 1
+    ignore_errors: yes
+
+  - name: "Clear metadata cache"
+    shell: docker exec -i oceansmhealth-web bash -c "php /var/www/oceansmhealth/bin/console doctrine:cache:clear-metadata"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Update database schema"
+    shell: docker exec -i oceansmhealth-web bash -c "php /var/www/oceansmhealth/bin/console doctrine:schema:update --force"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Database schema updating message"
+    debug: msg="{{command_result.stdout}}"
+
+  - name: "Execute database migration"
+    shell: docker exec -i oceansmhealth-web bash -c "php /var/www/oceansmhealth/bin/console --no-interaction doctrine:migrations:migrate"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Database migrations execution message"
+    debug: msg="{{command_result.stdout}}"
+
+  - name: "Make assets"
+    shell: docker exec -i oceansmhealth-web bash -c "cd /var/www/oceansmhealth; php bin/console assets:install"
+
+  - name: "Clear metadata cache"
+    shell: docker exec -i oceansmhealth-web bash -c "php /var/www/oceansmhealth/bin/console doctrine:cache:clear-metadata"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Update cache"
+    shell: docker exec -i oceansmhealth-web bash -c "cd /var/www/oceansmhealth; php bin/console cache:clear --env=prod"
+
+  - file: path={{app_project_root}}/var/cache owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/logs owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/sessions owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/var/sessions/prod owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/var/sessions/dev owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/web owner={{ app_user }} group={{ app_group }} recurse=true
+
+  - file: path={{app_project_root}}/web/uploads owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true state=directory
+
+  - file: path={{app_project_root}}/app/DoctrineMigrations owner={{ app_user }} group={{ app_group }} mode=0777 state=directory

@@ -1,0 +1,36 @@
+---
+- hosts: dev
+  user: oceansmhealth
+  become: yes
+  vars_files:
+    - group_vars/dev
+
+  tasks:
+
+    - name: Stop and remove web container
+      docker:
+        name: oceansmhealth-web
+        image: oceansmhealth_web
+        state: absent
+
+    - name: Stop and remove nginx container
+      docker:
+        name: oceansmhealth-nginx
+        image: oceansmhealth_nginx
+        state: absent
+
+    - name: Run web container via Command module
+      command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ -p 8080:8080 -i --name oceansmhealth-web --hostname=web-box oceansmhealth_web
+
+    - pause: seconds=10
+
+    - name: Start web container
+      command: docker start oceansmhealth-web
+
+    - pause: seconds=5
+
+    - name: Run nginx container via Command module
+      command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ --link oceansmhealth-web:oceansmhealth-web -p 80:80 -i --name oceansmhealth-nginx --hostname=nginx-box oceansmhealth_nginx
+
+    - name: Start nginx container
+      command: docker start oceansmhealth-nginx

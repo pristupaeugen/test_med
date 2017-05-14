@@ -1,0 +1,14 @@
+server {
+    listen 80;
+
+    client_max_body_size 10M;
+
+    location / {
+        proxy_pass http://oceansmhealth-web:8080;
+        proxy_set_header Host $host;
+    }
+
+    location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|zip|tgz|gz|js)$ {
+      root /var/www/oceansmhealth/web;
+    }
+}

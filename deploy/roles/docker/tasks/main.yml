@@ -1,0 +1,114 @@
+---
+# tasks file for roles/docker
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Install required packages
+    apt: name={{ item }}
+         state=present
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+
+  - name: Install GPG key
+    apt_key: keyserver=hkp://p80.pool.sks-keyservers.net:80 id=58118E89F3A912897C070ADBF76221572C52609D
+
+  - name: Remove docker config
+    file: path=/etc/apt/sources.list.d/docker.list state=absent
+
+  - name: Create docker config
+    file: path=/etc/apt/sources.list.d/docker.list state=touch mode=0644
+
+  - name: Update docker config
+    copy: content="deb https://apt.dockerproject.org/repo ubuntu-trusty main" dest="/etc/apt/sources.list.d/docker.list"
+    when: ansible_lsb.major_release|int == 14
+
+  - name: Update docker config
+    copy: content="deb https://apt.dockerproject.org/repo ubuntu-xenial main" dest="/etc/apt/sources.list.d/docker.list"
+    when: ansible_lsb.major_release|int == 16
+
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Remove required packages
+    apt: name={{ item }}
+         state=absent
+    with_items:
+      - lxc-docker
+
+  - name: Update packages
+    command: apt-get update --fix-missing
+
+  - name: Update packages
+    command: apt-get update
+
+  - name: Update cache for packages
+    command: apt-cache policy docker-engine
+
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Install required packages
+    apt: name=linux-image-extra-{{ ansible_kernel }} state=latest update_cache=yes
+
+  - name: Install required packages
+    apt: name={{ item }}
+         state=present
+    with_items:
+      - apparmor
+
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - block:
+    - name: Install required packages
+      apt: name={{ item }}
+           state=present
+      with_items:
+        - docker-engine
+    rescue:
+    - name: Install required packages
+      apt: name={{ item }}
+           state=present
+      with_items:
+        - docker-engine=1.8.3-0~trusty
+
+  - name: Start service
+    service: name=docker state=started
+
+  - name: make sure pip is installed
+    apt:
+      name: python-pip
+      state: present
+
+  - name: make sure required PyPi packages are uninstalled
+    pip: name={{ item }} state=absent
+    with_items:
+      - docker-py==1.2.3
+      - six>=1.4.0
+    ignore_errors: yes
+
+  - name: make sure required PyPi packages are installed
+    pip: name={{ item }} state=present
+    with_items:
+      - docker-py
+      - six>=1.4.0
+
+  - name: "Restart docker"
+    command: service docker restart
+
+  - name: "Add user to docker group"
+    command: usermod -aG docker {{ app_user }}
+
+  - name: "Restart docker"
+    command: service docker restart
+
+  - name: Stop docker
+    command: systemctl stop docker
+    when: ansible_lsb.major_release|int == 16
+
+  - name: Start docker
+    command: systemctl start docker
+    when: ansible_lsb.major_release|int == 16
+
+  - pause: seconds=10

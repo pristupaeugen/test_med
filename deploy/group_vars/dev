@@ -1,0 +1,7 @@
+app_project_root: /var/www/oceansmhealth
+app_user: oceansmhealth
+app_group: www-data
+host_internal_ip: 172.28.27.40
+database_port: 3306
+http_port: 80
+branch: dev

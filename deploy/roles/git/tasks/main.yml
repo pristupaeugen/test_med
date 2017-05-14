@@ -1,0 +1,9 @@
+---
+# tasks file for roles/git
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Install Git
+    apt: name={{ item }} state=latest
+    with_items:
+      - git

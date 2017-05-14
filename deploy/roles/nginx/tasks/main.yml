@@ -1,0 +1,19 @@
+---
+# tasks file for roles/nginx
+  - name: Stop and remove nginx container
+    docker:
+      name: oceansmhealth-nginx
+      image: oceansmhealth_nginx
+      state: absent
+
+  - name: Remove nginx image
+    docker_image: name="oceansmhealth_nginx" state=absent
+
+  - name: Check or build nginx image
+    docker_image: path="{{app_project_root}}/deploy/containers/nginx" name="oceansmhealth_nginx" state=present
+
+  - name: Run nginx container via Command module
+    command: docker run -v /var/www/oceansmhealth/:/var/www/oceansmhealth/ --link oceansmhealth-web:oceansmhealth-web -p 80:80 -i --name oceansmhealth-nginx --hostname=nginx-box oceansmhealth_nginx
+
+  - name: Start nginx container
+    command: docker start oceansmhealth-nginx

@@ -1,0 +1,8 @@
+---
+# tasks file for roles/unittests
+  - name: "Execute unittests"
+    shell: docker exec -i oceansmhealth-test bash -c "cd {{app_project_root}}; vendor/bin/phpunit"
+    ignore_errors: yes
+
+  - name: "Execute unittests"
+    shell: docker exec -i oceansmhealth-test bash -c "cd {{app_project_root}}; vendor/bin/phpunit"

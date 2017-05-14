@@ -1,0 +1,31 @@
+---
+# tasks file for roles/source
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Remove directory for release
+    file: state=absent path={{item.path}}
+    with_items:
+      - { path: "{{app_project_root}}" }
+
+  - name: Create directory for release
+    file: state=directory path={{item.path}} owner={{ app_user }} group={{ app_group }} mode=0777
+    with_items:
+      - { path: "{{app_project_root}}" }
+
+  - pause: seconds=5
+
+  - name: Create project
+    git: repo=git@bitbucket.org:oceansmhealth/omh-backend-api.git
+         dest={{app_project_root}}
+         version={{branch}}
+         accept_hostkey=yes
+    become: no
+
+  - copy: src=templates/parameters.yml dest={{app_project_root}}/app/config/parameters.yml owner={{ app_user }} group={{ app_group }} mode=0644
+
+  - replace: dest={{app_project_root}}/app/config/parameters.yml regexp='\$database_port' replace='{{database_port}}'
+
+  - replace: dest={{app_project_root}}/app/config/parameters.yml regexp='\$host_internal_ip' replace='{{host_internal_ip}}'
+
+  - replace: dest={{app_project_root}}/app/config/parameters.yml regexp='\$mysql_pass' replace='{{mysql_pass}}'

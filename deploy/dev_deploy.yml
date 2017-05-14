@@ -1,0 +1,15 @@
+---
+- hosts: dev
+  user: oceansmhealth
+  become: yes
+  vars_files:
+    - group_vars/dev
+
+  roles:
+    - git
+    - source
+    - docker
+    - redis
+    - web
+    - nginx
+    - create

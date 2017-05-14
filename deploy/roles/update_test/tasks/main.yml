@@ -1,0 +1,82 @@
+---
+# tasks file for roles/update
+  - name: Update project
+    git: repo=git@bitbucket.org:oceansmhealth/omh-backend-api.git
+         dest={{app_project_root}}
+         version={{branch}}
+         accept_hostkey=yes
+         clone=no
+         update=yes
+         force=yes
+    become: no
+
+  - name: Stop and remove web container
+    docker:
+      name: oceansmhealth-test
+      image: oceansmhealth_test
+      state: absent
+    when: jenkins is undefined or jenkins|int == 0
+
+  - name: Run web container via Command module
+    command: docker run -v /var/www/test/:/var/www/test/ --link oceansmhealth-redis:oceansmhealth-redis -p 8081:8081 -i --name oceansmhealth-test --hostname=web-box oceansmhealth_test
+    when: jenkins is undefined or jenkins|int == 0
+
+  - pause: seconds=10
+
+  - name: Start web container
+    command: docker start oceansmhealth-test
+
+  - pause: seconds=5
+
+  - name: "Install vendors via composer"
+    shell: docker exec -i oceansmhealth-test bash -c "cd /var/www/test; composer install --no-interaction"
+    when: composer_update|int == 1
+    ignore_errors: yes
+
+  - name: "Clear metadata cache"
+    shell: docker exec -i oceansmhealth-test bash -c "php /var/www/test/bin/console doctrine:cache:clear-metadata"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Update database schema"
+    shell: docker exec -i oceansmhealth-test bash -c "php /var/www/test/bin/console doctrine:schema:update --force"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Database schema updating message"
+    debug: msg="{{command_result.stdout}}"
+
+  - name: "Execute database migration"
+    shell: docker exec -i oceansmhealth-test bash -c "php /var/www/test/bin/console --no-interaction doctrine:migrations:migrate"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Database migrations execution message"
+    debug: msg="{{command_result.stdout}}"
+
+  - name: "Make assets"
+    shell: docker exec -i oceansmhealth-test bash -c "cd /var/www/test; php bin/console assets:install"
+
+  - name: "Clear metadata cache"
+    shell: docker exec -i oceansmhealth-test bash -c "php /var/www/test/bin/console doctrine:cache:clear-metadata"
+    register: command_result
+    ignore_errors: yes
+
+  - name: "Update cache"
+    shell: docker exec -i oceansmhealth-test bash -c "cd /var/www/test; php bin/console cache:clear --env=prod"
+
+  - file: path={{app_project_root}}/var/cache owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/logs owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true
+
+  - file: path={{app_project_root}}/var/sessions owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/var/sessions/prod owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/var/sessions/dev owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
+
+  - file: path={{app_project_root}}/web owner={{ app_user }} group={{ app_group }} recurse=true
+
+  - file: path={{app_project_root}}/web/uploads owner={{ app_user }} group={{ app_group }} mode=0777 recurse=true state=directory
+
+  - file: path={{app_project_root}}/app/DoctrineMigrations owner={{ app_user }} group={{ app_group }} mode=0777 state=directory
